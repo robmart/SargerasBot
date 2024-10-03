@@ -1,7 +1,9 @@
 ﻿using Discord.WebSocket;
-using SargerasBot.Extensions;
 using System.Timers;
 using Discord;
+using SargerasBot.Extensions;
+using SargerasBot.Reference;
+using SargerasBot.Util;
 using Timer = System.Timers.Timer;
 
 namespace SargerasBot.Commands;
@@ -94,6 +96,11 @@ public static class Sitrep {
         Timer.Stop();
     }
 
+    public static async Task Register(IUser user, long hours) {
+        await DatabaseUtil.AddSitrepData(DatabaseStrings.DatabaseSitrep, $"{user.Username}", StartDate.ToString().Replace("-", ""),
+            EndDate.ToString().Replace("-", ""), hours.ToString());
+    }
+
     /// <summary>
     /// Sets all the dates, relative to the current date
     /// </summary>
@@ -101,6 +108,9 @@ public static class Sitrep {
         StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-7));
         EndDate = DateOnly.FromDateTime(DateTime.Now);
         RefreshDate = DateOnly.FromDateTime(DateTime.Now.AddDays(7));
+        
+        await StartDate.ToString().SetServerData(DatabaseStrings.DatabaseSitrep, "ServerData", "StartDate");
+        await EndDate.ToString().SetServerData(DatabaseStrings.DatabaseSitrep, "ServerData", "EndDate");
 
         await Channel.SendMessageAsync($"New sitrep period `{StartDate}` - `{EndDate}`");
     }

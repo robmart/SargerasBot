@@ -2,6 +2,8 @@
 using Discord.Net;
 using Discord.WebSocket;
 using Newtonsoft.Json;
+using SargerasBot.Extensions;
+using SargerasBot.Reference;
 
 namespace SargerasBot.Commands;
 
@@ -30,11 +32,13 @@ public static class CommandHandler {
                     } else {
                         await command.RespondAsync($"Sitrep will now run every {DateTime.Now.DayOfWeek}");
                         Sitrep.Start(command.Channel);
+                        await Sitrep.Channel.Id.SetServerData(DatabaseStrings.DatabaseSitrep, "ServerData", "SitrepChannel");
                     }
                 } else {
                     await command.RespondAsync($"You have insufficient permissions to run this command.");
                 }
                 break;
+            
             case "stop":
                 if (!Sitrep.IsActive) {
                     await command.RespondAsync($"Sitrep is already disabled");
@@ -45,16 +49,19 @@ public static class CommandHandler {
                     await command.RespondAsync($"You have insufficient permissions to run this command.");
                 }
                 break;
+            
             case "role":
                 if (sender.GuildPermissions.Administrator) {
                     var role = command.Data.Options.First().Options.First().Value as IRole;
                     Sitrep.Role = role;
+                    await Sitrep.Role.Id.SetServerData(DatabaseStrings.DatabaseSitrep, "ServerData", "SitrepRole");
                     await command.RespondAsync($"{role.Name} is now the selected role for sitrep");
                     Sitrep.Stop();
                 } else {
                     await command.RespondAsync($"You have insufficient permissions to run this command.");
                 }
                 break;
+            
             case "register":
                 if (Sitrep.Role != null && !sender.Roles.Contains(Sitrep.Role)) {
                     await command.RespondAsync($"You have insufficient permissions to run this command.");
@@ -65,6 +72,7 @@ public static class CommandHandler {
                         $"Sitrep is currently disabled. To run the command, please have a server administrator run the command `/sitrep start`");
                 } else {
                     var hours = (long) command.Data.Options.First().Options.First().Value;
+                    await Sitrep.Register(sender, hours);
                     await command.RespondAsync($"Registered {hours} hours for {sender.Username}");
                 }
                 break;
