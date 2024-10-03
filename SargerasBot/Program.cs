@@ -24,6 +24,6 @@ public static class Program {
     }
     
     public static async Task Client_Ready() {
-        // await RegisterCommands.RegisterCommands();
+        // await CommandHandler.RegisterCommands();
     }
 }
