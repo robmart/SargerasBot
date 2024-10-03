@@ -1,6 +1,8 @@
-﻿using Discord.WebSocket;
+﻿using System.Data;
+using Discord.WebSocket;
 using System.Timers;
 using Discord;
+using Npgsql;
 using SargerasBot.Extensions;
 using SargerasBot.Reference;
 using SargerasBot.Util;
@@ -86,7 +88,7 @@ public static class Sitrep {
     /// <summary>
     /// Stops the sitrep cycle
     /// </summary>
-    public static void Stop() {
+    public static async Task Stop() {
         if (!IsActive) return;
         IsActive = false;
         Channel = null;
@@ -94,6 +96,10 @@ public static class Sitrep {
         StartDate = DateOnly.MinValue;
         RefreshDate = DateOnly.MinValue;
         Timer.Stop();
+        
+        await "NULL".SetServerData(DatabaseStrings.DatabaseSitrep, "ServerData", "StartDate");
+        await "NULL".SetServerData(DatabaseStrings.DatabaseSitrep, "ServerData", "EndDate");
+
     }
 
     public static async Task Register(IUser user, long hours) {
@@ -112,7 +118,7 @@ public static class Sitrep {
         await StartDate.ToString().SetServerData(DatabaseStrings.DatabaseSitrep, "ServerData", "StartDate");
         await EndDate.ToString().SetServerData(DatabaseStrings.DatabaseSitrep, "ServerData", "EndDate");
 
-        await Channel.SendMessageAsync($"New sitrep period `{StartDate}` - `{EndDate}`");
+        await Channel.SendMessageAsync($"{Role.Mention} New sitrep period `{StartDate}` - `{EndDate}`\n\nPlease register the amount of time you spent working on the mod during the period by using the command `/sitrep register <hours>`");
     }
     
     /// <summary>
@@ -127,5 +133,48 @@ public static class Sitrep {
         Timer.Elapsed += TimerElapsed;
         Timer.AutoReset = false;
         Timer.Start();
+    }
+
+    internal static async Task LoadFromDatabase() {
+        await using var dataSource = NpgsqlDataSource.Create(DatabaseStrings.DatabaseSitrep);
+        var exists = await dataSource.CreateCommand(
+            "SELECT * FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'serverdata';").ExecuteReaderAsync();
+        if (exists.HasRows) {
+            await using (var cmd = dataSource.CreateCommand("SELECT * FROM public.serverdata"))
+            await using (var reader = await cmd.ExecuteReaderAsync()) {
+                while (await reader.ReadAsync()) {
+                    var guild = Program.Client.Guilds.First();
+                    IChannel channel = null;
+                    DateOnly startDate = DateOnly.MinValue;
+                    DateOnly endDate = DateOnly.MinValue;
+                    var channelResult = reader.GetValue(0);
+                    if (channelResult != null && channelResult != DBNull.Value) {
+                        var channelId = ulong.Parse((string)channelResult);
+                        channel = guild.Channels.FirstOrDefault(x => x.Id == channelId);
+                        channel.Name.ToString().Log();
+                    }
+                    var startDateResult = reader.GetValue(1);
+                    if (startDateResult != null && startDateResult != DBNull.Value && !startDateResult.Equals("NULL")) {
+                        startDate = DateOnly.Parse((string)startDateResult);
+                        startDate.ToString().Log();
+                    }
+                    var endDateResult = reader.GetValue(2);
+                    if (endDateResult != null && endDateResult != DBNull.Value && !endDateResult.Equals("NULL")) {
+                        endDate = DateOnly.Parse((string)endDateResult);
+                        endDate.ToString().Log();
+                    }
+                    var roleResult = reader.GetValue(3);
+                    if (roleResult != null && roleResult != DBNull.Value) {
+                        var roleId = ulong.Parse((string)roleResult);
+                        Role = guild.Roles.FirstOrDefault(x => x.Id == roleId);
+                        Role.Name.ToString().Log();
+                    }
+
+                    if (channel != null && startDate.Year > 10 && endDate.Year > 10) {
+                        Start((ISocketMessageChannel)channel, startDate, endDate);
+                    }
+                }
+            }
+        }
     }
 }
