@@ -31,6 +31,5 @@ public static class Program {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         
         await Sitrep.Sitrep.LoadFromDatabase();
-        await SitrepSheetBuilder.BuildSitrepSheet();
     }
 }

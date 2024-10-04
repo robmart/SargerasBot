@@ -14,16 +14,19 @@ public static class SitrepSheetBuilder {
 
 			int row = 1;
 			foreach (var dataValue in pair.Value) {
-				workSheet.Cells[row, 1].Value = dataValue.Key;
-				workSheet.Cells[row++, 2].Value = dataValue.Value;
+				workSheet.Cells[row, 1].Value = dataValue.Name;
+				workSheet.Cells[row, 2].Value = dataValue.Hours;
+				workSheet.Cells[row, 3].Value = dataValue.Description;
+				workSheet.Cells[row, 4].Value = dataValue.Progress;
+				workSheet.Cells[row++, 5].Value = dataValue.Difficulties;
 			}
 		}
 			
-		await package.SaveAsAsync(Directory.GetCurrentDirectory()+"\\Test.xlsx");
+		await package.SaveAsAsync(Directory.GetCurrentDirectory()+"\\Sheet.xlsx");
 	}
 
-	private static async Task<Dictionary<string, Dictionary<string, int>>> GetHours() {
-		var data = new Dictionary<string, Dictionary<string, int>>();
+	private static async Task<Dictionary<string, List<UserData>>> GetHours() {
+		var data = new Dictionary<string, List<UserData>>();
 		await using var dataSource = NpgsqlDataSource.Create(DatabaseStrings.DatabaseSitrep);
 		await using (var reader = await dataSource.CreateCommand(
 				             "SELECT * FROM information_schema.tables WHERE table_schema = 'public' AND NOT table_name = 'serverdata';")
@@ -35,15 +38,18 @@ public static class SitrepSheetBuilder {
 						var endDate = DateOnly.Parse(reader2.GetString(1));
 						var month = Regex.Replace(endDate.ToString(), "...$", "");
 						var hours = int.Parse(reader2.GetString(2));
+						var description = reader2.GetString(3);
+						var progress = reader2.GetString(4);
+						var difficulties = reader2.GetString(5);
 						
 						if (!data.ContainsKey(month)) {
-							data.Add(month, new Dictionary<string, int>());
+							data.Add(month, new List<UserData>());
 						}
 
-						if (!data[month].ContainsKey(table)) {
-							data[month].Add(table, hours);
+						if (!data[month].Any(x => x.Name.Equals(table))) {
+							data[month].Add(new UserData(table, hours, description, progress, difficulties));
 						} else {
-							data[month][table] = hours + data[month][table];
+							data[month].First(x => x.Name.Equals(table)).Hours += hours;
 						}
 					}
 				}

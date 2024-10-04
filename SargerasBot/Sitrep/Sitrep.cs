@@ -101,9 +101,9 @@ public static class Sitrep {
 
     }
 
-    public static async Task Register(IUser user, long hours) {
+    public static async Task Register(IUser user, long hours, string description, string progress = "", string difficulties = "") {
         await DatabaseUtil.AddSitrepData(DatabaseStrings.DatabaseSitrep, $"{user.Username}", StartDate.ToString(),
-            EndDate.ToString(), hours.ToString());
+            EndDate.ToString(), hours.ToString(), description, progress, difficulties);
     }
 
     /// <summary>
@@ -117,7 +117,7 @@ public static class Sitrep {
         await StartDate.ToString().SetServerData(DatabaseStrings.DatabaseSitrep, "ServerData", "StartDate");
         await EndDate.ToString().SetServerData(DatabaseStrings.DatabaseSitrep, "ServerData", "EndDate");
 
-        await Channel.SendMessageAsync($"{Role.Mention} New sitrep period `{StartDate}` - `{EndDate}`\n\nPlease register the amount of time you spent working on the mod during the period by using the command `/sitrep register <hours>`");
+        await Channel.SendMessageAsync($"{Role.Mention} New sitrep period `{StartDate}` - `{EndDate}`\n\nPlease register the amount of time you spent working on the mod during the period by using the command `/sitrep register <hours> <description>`\n\nIt would also be helpful if you could include:\n* The progress you have made (with the `<progress>` parameter)\n* Any difficulties you have encountered (with the `<difficulties>` parameter)");
     }
     
     /// <summary>
