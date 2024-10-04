@@ -13,6 +13,7 @@ public static class DatabaseUtil {
 			                ON CONFLICT (enddate) DO UPDATE    
 			                    SET startdate = EXCLUDED.startDate,  
 									hours = EXCLUDED.hours,   
+									description = EXCLUDED.description,   
 									progress = EXCLUDED.progress,   
 									difficulties = EXCLUDED.difficulties;")) {
 			cmd.Parameters.AddWithValue(startDate); //Done this way because otherwise it inserts the values incorrectly
