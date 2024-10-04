@@ -11,14 +11,24 @@ public static class SitrepSheetBuilder {
 		using var package = new ExcelPackage(new FileInfo("Sitrep.xlsx"));
 		foreach (var pair in data) {
 			var workSheet = package.Workbook.Worksheets.Add(pair.Key);
-
+			var totalHours = new Dictionary<string, int>();
 			int row = 1;
+
+			foreach (var dataValue in pair.Value) {
+				foreach (var dataValueInstance in dataValue.Instances) {
+					workSheet.Cells[row, 1].Value = dataValue.Name;
+					workSheet.Cells[row, 2].Value = dataValueInstance.Hours;
+					workSheet.Cells[row, 3].Value = dataValueInstance.Description;
+					workSheet.Cells[row, 4].Value = dataValueInstance.Progress;
+					workSheet.Cells[row++, 5].Value = dataValueInstance.Difficulties;
+				}
+			}
+
+			row++;
+
 			foreach (var dataValue in pair.Value) {
 				workSheet.Cells[row, 1].Value = dataValue.Name;
-				workSheet.Cells[row, 2].Value = dataValue.Hours;
-				workSheet.Cells[row, 3].Value = dataValue.Description;
-				workSheet.Cells[row, 4].Value = dataValue.Progress;
-				workSheet.Cells[row++, 5].Value = dataValue.Difficulties;
+				workSheet.Cells[row++, 2].Value = dataValue.TotalHours;
 			}
 		}
 			
@@ -47,10 +57,10 @@ public static class SitrepSheetBuilder {
 						}
 
 						if (!data[month].Any(x => x.Name.Equals(table))) {
-							data[month].Add(new UserData(table, hours, description, progress, difficulties));
-						} else {
-							data[month].First(x => x.Name.Equals(table)).Hours += hours;
+							data[month].Add(new UserData(table));
 						}
+						
+						data[month].First(x => x.Name.Equals(table)).Instances.Add(new UserData.UserDataInstance(hours, description, progress, difficulties));
 					}
 				}
 			}
