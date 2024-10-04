@@ -24,15 +24,15 @@ public static class CommandHandler {
         switch (command.Data.Options.First().Name) {
             case "start":
                 if (sender.GuildPermissions.Administrator) {
-                    if (Sitrep.Role == null) {
+                    if (Sitrep.Sitrep.Role == null) {
                         await command.RespondAsync(
                             $"You must set a role first. Please use the command `/sitrep role <role>`");
-                    } else if (Sitrep.IsActive) {
+                    } else if (Sitrep.Sitrep.IsActive) {
                         await command.RespondAsync($"Sitrep is already active");
                     } else {
                         await command.RespondAsync($"Sitrep will now run every {DateTime.Now.DayOfWeek}");
-                        Sitrep.Start(command.Channel);
-                        await Sitrep.Channel.Id.SetServerData(DatabaseStrings.DatabaseSitrep, "ServerData", "SitrepChannel");
+                        Sitrep.Sitrep.Start(command.Channel);
+                        await Sitrep.Sitrep.Channel.Id.SetServerData(DatabaseStrings.DatabaseSitrep, "ServerData", "SitrepChannel");
                     }
                 } else {
                     await command.RespondAsync($"You have insufficient permissions to run this command.");
@@ -40,11 +40,11 @@ public static class CommandHandler {
                 break;
             
             case "stop":
-                if (!Sitrep.IsActive) {
+                if (!Sitrep.Sitrep.IsActive) {
                     await command.RespondAsync($"Sitrep is already disabled");
                 } else if (sender.GuildPermissions.Administrator) {
                     await command.RespondAsync($"Sitrep is now disabled");
-                    Sitrep.Stop();
+                    Sitrep.Sitrep.Stop();
                 } else {
                     await command.RespondAsync($"You have insufficient permissions to run this command.");
                 }
@@ -53,26 +53,26 @@ public static class CommandHandler {
             case "role":
                 if (sender.GuildPermissions.Administrator) {
                     var role = command.Data.Options.First().Options.First().Value as IRole;
-                    Sitrep.Role = role;
-                    await Sitrep.Role.Id.SetServerData(DatabaseStrings.DatabaseSitrep, "ServerData", "SitrepRole");
+                    Sitrep.Sitrep.Role = role;
+                    await Sitrep.Sitrep.Role.Id.SetServerData(DatabaseStrings.DatabaseSitrep, "ServerData", "SitrepRole");
                     await command.RespondAsync($"{role.Name} is now the selected role for sitrep");
-                    Sitrep.Stop();
+                    Sitrep.Sitrep.Stop();
                 } else {
                     await command.RespondAsync($"You have insufficient permissions to run this command.");
                 }
                 break;
             
             case "register":
-                if (Sitrep.Role != null && !sender.Roles.Contains(Sitrep.Role)) {
+                if (Sitrep.Sitrep.Role != null && !sender.Roles.Contains(Sitrep.Sitrep.Role)) {
                     await command.RespondAsync($"You have insufficient permissions to run this command.");
-                } else if (Sitrep.Role == null) {
+                } else if (Sitrep.Sitrep.Role == null) {
                     await command.RespondAsync($"Sitrep does not have a role assigned. To run the command, please have a server administrator run the command `/sitrep role <role>`");
-                } else if (!Sitrep.IsActive) {
+                } else if (!Sitrep.Sitrep.IsActive) {
                     await command.RespondAsync(
                         $"Sitrep is currently disabled. To run the command, please have a server administrator run the command `/sitrep start`");
                 } else {
                     var hours = (long) command.Data.Options.First().Options.First().Value;
-                    await Sitrep.Register(sender, hours);
+                    await Sitrep.Sitrep.Register(sender, hours);
                     await command.RespondAsync($"Registered {hours} hours for {sender.Username}");
                 }
                 break;

@@ -1,4 +1,4 @@
-﻿using Npgsql;
+using Npgsql;
 using SargerasBot.Reference;
 
 namespace SargerasBot.Extensions;

@@ -9,6 +9,8 @@
 
     <ItemGroup>
       <PackageReference Include="Discord.Net" Version="3.16.0" />
+      <PackageReference Include="EPPlus" Version="7.4.0" />
+      <PackageReference Include="Microsoft.Office.Interop.Excel" Version="15.0.4795.1001" />
       <PackageReference Include="Npgsql" Version="8.0.4" />
     </ItemGroup>
 

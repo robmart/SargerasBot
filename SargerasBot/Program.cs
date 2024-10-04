@@ -2,8 +2,10 @@
 
 using Discord;
 using Discord.WebSocket;
+using OfficeOpenXml;
 using SargerasBot.Commands;
 using SargerasBot.Extensions;
+using SargerasBot.Sitrep;
 
 namespace SargerasBot;
 
@@ -25,6 +27,10 @@ public static class Program {
     
     public static async Task Client_Ready() {
         // await CommandHandler.RegisterCommands();
-        await Sitrep.LoadFromDatabase();
+        
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        
+        await Sitrep.Sitrep.LoadFromDatabase();
+        await SitrepSheetBuilder.BuildSitrepSheet();
     }
 }

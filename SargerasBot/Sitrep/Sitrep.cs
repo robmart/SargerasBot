@@ -1,14 +1,13 @@
-﻿using System.Data;
-using Discord.WebSocket;
-using System.Timers;
+﻿using System.Timers;
 using Discord;
+using Discord.WebSocket;
 using Npgsql;
 using SargerasBot.Extensions;
 using SargerasBot.Reference;
 using SargerasBot.Util;
 using Timer = System.Timers.Timer;
 
-namespace SargerasBot.Commands;
+namespace SargerasBot.Sitrep;
 
 public static class Sitrep {
     
@@ -103,8 +102,8 @@ public static class Sitrep {
     }
 
     public static async Task Register(IUser user, long hours) {
-        await DatabaseUtil.AddSitrepData(DatabaseStrings.DatabaseSitrep, $"{user.Username}", StartDate.ToString().Replace("-", ""),
-            EndDate.ToString().Replace("-", ""), hours.ToString());
+        await DatabaseUtil.AddSitrepData(DatabaseStrings.DatabaseSitrep, $"{user.Username}", StartDate.ToString(),
+            EndDate.ToString(), hours.ToString());
     }
 
     /// <summary>
@@ -151,23 +150,19 @@ public static class Sitrep {
                     if (channelResult != null && channelResult != DBNull.Value) {
                         var channelId = ulong.Parse((string)channelResult);
                         channel = guild.Channels.FirstOrDefault(x => x.Id == channelId);
-                        channel.Name.ToString().Log();
                     }
                     var startDateResult = reader.GetValue(1);
                     if (startDateResult != null && startDateResult != DBNull.Value && !startDateResult.Equals("NULL")) {
                         startDate = DateOnly.Parse((string)startDateResult);
-                        startDate.ToString().Log();
                     }
                     var endDateResult = reader.GetValue(2);
                     if (endDateResult != null && endDateResult != DBNull.Value && !endDateResult.Equals("NULL")) {
                         endDate = DateOnly.Parse((string)endDateResult);
-                        endDate.ToString().Log();
                     }
                     var roleResult = reader.GetValue(3);
                     if (roleResult != null && roleResult != DBNull.Value) {
                         var roleId = ulong.Parse((string)roleResult);
                         Role = guild.Roles.FirstOrDefault(x => x.Id == roleId);
-                        Role.Name.ToString().Log();
                     }
 
                     if (channel != null && startDate.Year > 10 && endDate.Year > 10) {
