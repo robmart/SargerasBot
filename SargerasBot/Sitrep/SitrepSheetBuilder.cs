@@ -6,8 +6,8 @@ using SargerasBot.Reference;
 namespace SargerasBot.Sitrep;
 
 public static class SitrepSheetBuilder {
-	public static async Task BuildSitrepSheet() {
-		var data = await GetHours();
+	public static async Task BuildSitrepSheet(string guildId) {
+		var data = await GetHours(guildId);
 		using var package = new ExcelPackage(new FileInfo("Sitrep.xlsx"));
 		foreach (var pair in data) {
 			var workSheet = package.Workbook.Worksheets.Add(pair.Key);
@@ -35,35 +35,31 @@ public static class SitrepSheetBuilder {
 		await package.SaveAsAsync(Directory.GetCurrentDirectory()+"\\Sheet.xlsx");
 	}
 
-	private static async Task<Dictionary<string, List<UserData>>> GetHours() {
+	private static async Task<Dictionary<string, List<UserData>>> GetHours(string guildId) {
 		var data = new Dictionary<string, List<UserData>>();
 		await using var dataSource = NpgsqlDataSource.Create(DatabaseStrings.DatabaseSitrep);
-		await using (var reader = await dataSource.CreateCommand(
-				             "SELECT * FROM information_schema.tables WHERE table_schema = 'public' AND NOT table_name = 'serverdata';")
-			             .ExecuteReaderAsync()) {
-			while (await reader.ReadAsync()) {
-				var table = reader.GetString(2);
-				await using (var reader2 = await dataSource.CreateCommand($"SELECT * FROM {table}").ExecuteReaderAsync()) {
-					while (await reader2.ReadAsync()) {
-						var endDate = DateOnly.Parse(reader2.GetString(1));
-						var month = Regex.Replace(endDate.ToString(), "...$", "");
-						var hours = int.Parse(reader2.GetString(2));
-						var description = reader2.GetString(3);
-						var progress = reader2.GetString(4);
-						var difficulties = reader2.GetString(5);
-						
-						if (!data.ContainsKey(month)) {
-							data.Add(month, new List<UserData>());
-						}
-
-						if (!data[month].Any(x => x.Name.Equals(table))) {
-							data[month].Add(new UserData(table));
-						}
-						
-						data[month].First(x => x.Name.Equals(table)).Instances.Add(new UserData.UserDataInstance(hours, description, progress, difficulties));
+		await using (var cmd = dataSource.CreateCommand($"SELECT * FROM userdata WHERE guildid = $1")) {
+			cmd.Parameters.AddWithValue(guildId);
+			await using (var reader = await cmd.ExecuteReaderAsync())
+				while (await reader.ReadAsync()) {
+					var userName = reader.GetString(1);
+					var endDate = DateOnly.Parse(reader.GetString(3));
+					var month = Regex.Replace(endDate.ToString(), "...$", "");
+					var hours = int.Parse(reader.GetString(4));
+					var description = reader.GetString(5);
+					var progress = reader.GetString(6);
+					var difficulties = reader.GetString(7);
+					
+					if (!data.ContainsKey(month)) {
+						data.Add(month, new List<UserData>());
 					}
+
+					if (!data[month].Any(x => x.Name.Equals(userName))) {
+						data[month].Add(new UserData(userName));
+					}
+					
+					data[month].First(x => x.Name.Equals(userName)).Instances.Add(new UserData.UserDataInstance(hours, description, progress, difficulties));
 				}
-			}
 		}
 		
 		return data;

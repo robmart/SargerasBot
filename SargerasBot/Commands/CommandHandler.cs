@@ -20,6 +20,7 @@ public static class CommandHandler {
 
     private static async Task SitrepCommandHandler(SocketSlashCommand command) {
         var sender = command.User as SocketGuildUser;
+        var channel = command.Channel as SocketGuildChannel;
         // var hours = command.Data.Options.Where(x => x.Name.Equals("hours")).Value;
         
         switch (command.Data.Options.First().Name) {
@@ -32,7 +33,7 @@ public static class CommandHandler {
                         await command.RespondAsync($"Sitrep is already active");
                     } else {
                         await command.RespondAsync($"Sitrep will now run every {DateTime.Now.DayOfWeek}");
-                        Sitrep.Sitrep.Start(command.Channel);
+                        Sitrep.Sitrep.Start(channel.Guild, command.Channel);
                         await Sitrep.Sitrep.Channel.Id.SetServerData(DatabaseStrings.DatabaseSitrep, "ServerData", "SitrepChannel");
                     }
                 } else {
@@ -66,7 +67,7 @@ public static class CommandHandler {
             case "report":
                 if (sender.GuildPermissions.Administrator) {
                     await command.RespondAsync($"Generating report, hold right");
-                    await SitrepSheetBuilder.BuildSitrepSheet();
+                    await SitrepSheetBuilder.BuildSitrepSheet(channel.Guild.Id.ToString());
                     await command.Channel.SendFileAsync(Directory.GetCurrentDirectory() + "\\Sheet.xlsx");
                     File.Delete(Directory.GetCurrentDirectory() + "\\Sheet.xlsx");
                 } else {

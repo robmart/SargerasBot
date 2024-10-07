@@ -29,6 +29,10 @@ public static class Sitrep {
     /// </summary>
     public static DateOnly RefreshDate { get; private set; }
     /// <summary>
+    /// The guild for this sitrep
+    /// </summary>
+    public static IGuild Guild { get; private set; }
+    /// <summary>
     /// The channel the bot will send the messages in
     /// </summary>
     public static ISocketMessageChannel Channel { get; private set; }
@@ -48,9 +52,10 @@ public static class Sitrep {
     /// Refresh Date: One week in the future
     /// </summary>
     /// <param name="channel">The channel the bot will reply in</param>
-    public static async void Start(ISocketMessageChannel channel) {
+    public static async void Start(IGuild guild, ISocketMessageChannel channel) {
         if (IsActive) return;
         IsActive = true;
+        Guild = guild;
         Channel = channel;
 
         if (StartDate.Year < 10 || EndDate.Year < 10 || RefreshDate.Year < 10) {
@@ -72,13 +77,13 @@ public static class Sitrep {
     /// <param name="channel">The channel the bot will reply in</param>
     /// <param name="startDate">The start of the sitrep period</param>
     /// <param name="endDate">The end of the sitrep period</param>
-    internal static async void Start(ISocketMessageChannel channel, DateOnly startDate, DateOnly endDate) {
+    internal static async void Start(IGuild guild, ISocketMessageChannel channel, DateOnly startDate, DateOnly endDate) {
         if (IsActive) return;
         StartDate = startDate;
         EndDate = endDate;
         RefreshDate = EndDate.AddDays(7);
         
-        Start(channel);
+        Start(guild, channel);
 
         if (DateOnly.FromDateTime(DateTime.Now) > RefreshDate) {
             await StartPeriod();
@@ -103,9 +108,9 @@ public static class Sitrep {
     }
 
     public static async Task Register(IUser user, long hours, string description, string progress = "", string difficulties = "") {
-        await DatabaseUtil.AddSitrepData(DatabaseStrings.DatabaseSitrep, $"{user.Username}", 
-            StartDate.ToString("O"), EndDate.ToString("O"), 
-            hours.ToString(), description, progress, difficulties);
+        await DatabaseUtil.AddSitrepData(DatabaseStrings.DatabaseSitrep, $"{Guild.Id.ToString()}", 
+            $"{user.Username}", StartDate.ToString("O"), EndDate.ToString("O"), hours.ToString(), 
+            description, progress, difficulties);
     }
 
     /// <summary>
@@ -168,7 +173,7 @@ public static class Sitrep {
                     }
 
                     if (channel != null && startDate.Year > 10 && endDate.Year > 10) {
-                        Start((ISocketMessageChannel)channel, startDate, endDate);
+                        Start(guild, (ISocketMessageChannel)channel, startDate, endDate);
                     }
                 }
             }
