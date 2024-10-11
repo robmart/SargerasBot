@@ -76,7 +76,7 @@ public static class CommandHandler {
                 break;
             
             case "register":
-                if (Sitrep.Sitrep.Role != null && !sender.Roles.Contains(Sitrep.Sitrep.Role)) {
+                if (Sitrep.Sitrep.Role != null && !sender.Roles.Any(x => x.Id == Sitrep.Sitrep.Role.Id)) {
                     await command.RespondAsync($"You have insufficient permissions to run this command.");
                 } else if (Sitrep.Sitrep.Role == null) {
                     await command.RespondAsync($"Sitrep does not have a role assigned. To run the command, please have a server administrator run the command `/sitrep role <role>`");
