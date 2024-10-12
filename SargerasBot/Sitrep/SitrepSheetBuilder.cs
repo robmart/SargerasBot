@@ -1,6 +1,8 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Globalization;
+using System.Text.RegularExpressions;
 using Npgsql;
 using OfficeOpenXml;
+using SargerasBot.Extensions;
 using SargerasBot.Reference;
 
 namespace SargerasBot.Sitrep;
@@ -11,7 +13,6 @@ public static class SitrepSheetBuilder {
 		using var package = new ExcelPackage(new FileInfo("Sitrep.xlsx"));
 		foreach (var pair in data) {
 			var workSheet = package.Workbook.Worksheets.Add(pair.Key);
-			var totalHours = new Dictionary<string, int>();
 			int row = 1;
 
 			foreach (var dataValue in pair.Value) {
@@ -44,7 +45,7 @@ public static class SitrepSheetBuilder {
 				while (await reader.ReadAsync()) {
 					var userName = reader.GetString(1);
 					var endDate = DateOnly.Parse(reader.GetString(3));
-					var month = Regex.Replace(endDate.ToString(), "...$", "");
+					var month = Regex.Replace(endDate.ToString("O"), "...$", "");
 					var hours = int.Parse(reader.GetString(4));
 					var description = reader.GetString(5);
 					var progress = reader.GetString(6);

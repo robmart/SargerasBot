@@ -46,7 +46,7 @@ public static class CommandHandler {
                     await command.RespondAsync($"Sitrep is already disabled");
                 } else if (sender.GuildPermissions.Administrator) {
                     await command.RespondAsync($"Sitrep is now disabled");
-                    Sitrep.Sitrep.Stop();
+                    await Sitrep.Sitrep.Stop();
                 } else {
                     await command.RespondAsync($"You have insufficient permissions to run this command.");
                 }
@@ -58,7 +58,7 @@ public static class CommandHandler {
                     Sitrep.Sitrep.Role = role;
                     await Sitrep.Sitrep.Role.Id.SetServerData(DatabaseStrings.DatabaseSitrep, "ServerData", "SitrepRole");
                     await command.RespondAsync($"{role.Name} is now the selected role for sitrep");
-                    Sitrep.Sitrep.Stop();
+                    await Sitrep.Sitrep.Stop();
                 } else {
                     await command.RespondAsync($"You have insufficient permissions to run this command.");
                 }
