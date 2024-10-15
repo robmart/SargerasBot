@@ -68,8 +68,8 @@ public static class CommandHandler {
                 if (sender.GuildPermissions.Administrator) {
                     await command.RespondAsync($"Generating report, hold right");
                     await SitrepSheetBuilder.BuildSitrepSheet(channel.Guild.Id.ToString());
-                    await command.Channel.SendFileAsync(Directory.GetCurrentDirectory() + "\\Sheet.xlsx");
-                    File.Delete(Directory.GetCurrentDirectory() + "\\Sheet.xlsx");
+                    await command.Channel.SendFileAsync($"{Directory.GetCurrentDirectory()}/Sheet.xlsx");
+                    File.Delete($"{Directory.GetCurrentDirectory()}/Sheet.xlsx");
                 } else {
                     await command.RespondAsync($"You have insufficient permissions to run this command.");
                 }

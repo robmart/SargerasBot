@@ -33,7 +33,7 @@ public static class SitrepSheetBuilder {
 			}
 		}
 			
-		await package.SaveAsAsync(Directory.GetCurrentDirectory()+"\\Sheet.xlsx");
+		await package.SaveAsAsync($"{Directory.GetCurrentDirectory()}/Sheet.xlsx");
 	}
 
 	private static async Task<Dictionary<string, List<UserData>>> GetHours(string guildId) {
